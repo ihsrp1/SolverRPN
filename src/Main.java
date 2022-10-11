@@ -8,35 +8,53 @@ import java.io.FileNotFoundException;  // Import this class to handle errors
 import java.io.File;  // Import the File class
 import stacker.rpn.lexer.Token;
 import stacker.rpn.lexer.TokenType;
+import stacker.rpn.lexer.Regex;
 class SolverRPN {
     private static TokenType getTokenType (String data) {
-        if (data.equals("+")) {
-            return TokenType.PLUS;
-        } else if (data.equals("-")) {
-            return TokenType.MINUS;
-        } else if (data.equals("*")) {
-            return TokenType.STAR;
-        } else if (data.equals("/")) {
-            return TokenType.SLASH;
-        } else {
-            try {
-                int number = Integer.parseInt(data);
-                return TokenType.NUM;
-            } catch (Exception e) {
-                throw new Error("Unexpected character: "+data);
+        if(Regex.isNum(data)) {
+            return TokenType.NUM;
+        } else if (Regex.isOp(data)) {
+            if (Regex.isPlus(data)) {
+                return TokenType.PLUS;
+            } else if (Regex.isMinus(data)) {
+                return TokenType.MINUS;
+            } else if (Regex.isStar(data)) {
+                return TokenType.STAR;
+            } else if (Regex.isSlash(data)) {
+                return TokenType.SLASH;
             }
+        } else {
+            throw new Error("Unexpected character: "+data);
         }
+
+//        if (data.equals("+")) {
+//            return TokenType.PLUS;
+//        } else if (data.equals("-")) {
+//            return TokenType.MINUS;
+//        } else if (data.equals("*")) {
+//            return TokenType.STAR;
+//        } else if (data.equals("/")) {
+//            return TokenType.SLASH;
+//        } else {
+//            try {
+//                int number = Integer.parseInt(data);
+//                return TokenType.NUM;
+//            } catch (Exception e) {
+//                throw new Error("Unexpected character: "+data);
+//            }
+//        }
+        return TokenType.EOF;
     }
-    private static int doOp (Integer[] numbers, String op) {
+    private static int doOp (Integer[] numbers, Token op) {
         Integer result = numbers[numbers.length-1];
         for (int i = numbers.length-2; i >= 0; i--){
-            if (op.equals("+")) {
+            if (op.type == TokenType.PLUS) {
                 result += numbers[i];
-            } else if (op.equals("-")) {
+            } else if (op.type == TokenType.MINUS) {
                 result -= numbers[i];
-            } else if (op.equals("*")) {
+            } else if (op.type == TokenType.STAR) {
                 result *= numbers[i];
-            } else if (op.equals("/")) {
+            } else if (op.type == TokenType.SLASH) {
                 result /= numbers[i];
             }
         }
@@ -53,7 +71,7 @@ class SolverRPN {
                     numbers[i] = stk.pop();
                     i++;
                 }
-                int result = doOp(numbers, t.lexeme);
+                int result = doOp(numbers, t);
                 stk.push(result);
             } else {
                 stk.push(Integer.parseInt(t.lexeme));
@@ -68,7 +86,6 @@ class SolverRPN {
             TokenType tp = getTokenType(data);
             Token t = new Token(tp, data);
             tokens.add(t);
-
         }
         return tokens;
     }
